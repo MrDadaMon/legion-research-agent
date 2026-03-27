@@ -48,7 +48,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Preference tracking with confirmation loop, rejection storage, warning system
+- [x] 02-01: Preference tracking with confirmation loop, rejection storage, warning system
 - [x] 02-02: Content surfacing with topic queries and proactive knowledge delivery
 
 ### Phase 3: Intelligence Layer
@@ -90,7 +90,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Content Pipeline | 3/3 | Complete    | 2026-03-27 |
 | 2. Memory & Surfacing | 2/2 | Complete   | 2026-03-27 |
-| 3. Intelligence Layer | 0/2 | Not started | - |
+| 3. Intelligence Layer | 0/2 | Plans ready | - |
 | 4. Research on Demand | 0/1 | Not started | - |
 
 ## Coverage
