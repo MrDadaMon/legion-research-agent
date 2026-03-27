@@ -1,6 +1,7 @@
 import aiosqlite
 import re
 from datetime import datetime
+import sqlite_vec
 
 from src.models import ContentItem, Topic, compute_content_hash, slugify
 
@@ -68,6 +69,31 @@ class Database:
         """)
         await self._conn.execute("CREATE INDEX IF NOT EXISTS idx_preferences_topic ON preferences(topic)")
         await self._conn.execute("CREATE INDEX IF NOT EXISTS idx_preferences_type ON preferences(preference_type)")
+
+        await self._conn.commit()
+
+        # topic_metadata table for gap detection (GAP-01)
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS topic_metadata (
+                topic_id INTEGER PRIMARY KEY REFERENCES topics(id) ON DELETE CASCADE,
+                last_content_date TEXT NOT NULL,
+                content_count INTEGER NOT NULL DEFAULT 0,
+                last_gap_suggestion TEXT
+            )
+        """)
+
+        # conflict_records table to track resolved conflicts
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS conflict_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT NOT NULL,
+                content_a_id INTEGER REFERENCES content(id) ON DELETE CASCADE,
+                content_b_id INTEGER REFERENCES content(id) ON DELETE CASCADE,
+                disagreement_summary TEXT NOT NULL,
+                resolution TEXT CHECK(resolution IN ('a_preferred', 'b_preferred', 'both_kept')),
+                resolved_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
 
         await self._conn.commit()
 
@@ -279,6 +305,69 @@ class Database:
                     'reason': rejection['reason']
                 })
         return matches
+
+    async def update_topic_metadata(self, topic_id: int) -> bool:
+        """Update topic metadata when new content is added. Returns True if gap should be suggested."""
+        await self._ensure_connection()
+        now = datetime.now().isoformat()
+
+        cursor = await self._conn.execute(
+            "SELECT content_count, last_content_date FROM topic_metadata WHERE topic_id = ?",
+            (topic_id,)
+        )
+        row = await cursor.fetchone()
+
+        if row is None:
+            await self._conn.execute(
+                "INSERT INTO topic_metadata (topic_id, last_content_date, content_count) VALUES (?, ?, 1)",
+                (topic_id, now)
+            )
+        else:
+            await self._conn.execute("""
+                UPDATE topic_metadata
+                SET last_content_date = ?, content_count = content_count + 1
+                WHERE topic_id = ?
+            """, (now, topic_id))
+
+        await self._conn.commit()
+        return False  # Gap suggestion handled by gap_handler
+
+    async def get_topic_metadata(self, topic_id: int) -> dict | None:
+        """Get metadata for a topic."""
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            "SELECT * FROM topic_metadata WHERE topic_id = ?",
+            (topic_id,)
+        )
+        row = await cursor.fetchone()
+        return dict(row) if row else None
+
+    async def record_conflict(
+        self,
+        topic: str,
+        content_a_id: int,
+        content_b_id: int,
+        disagreement_summary: str,
+        resolution: str | None = None
+    ) -> int:
+        """Record a conflict between two content pieces. Returns conflict id."""
+        await self._ensure_connection()
+        cursor = await self._conn.execute("""
+            INSERT INTO conflict_records (topic, content_a_id, content_b_id, disagreement_summary, resolution)
+            VALUES (?, ?, ?, ?, ?)
+        """, (topic, content_a_id, content_b_id, disagreement_summary, resolution))
+        await self._conn.commit()
+        return cursor.lastrowid
+
+    async def resolve_conflict_record(self, conflict_id: int, resolution: str) -> None:
+        """Update conflict record with resolution."""
+        await self._ensure_connection()
+        await self._conn.execute("""
+            UPDATE conflict_records
+            SET resolution = ?, resolved_at = datetime('now')
+            WHERE id = ?
+        """, (resolution, conflict_id))
+        await self._conn.commit()
 
     async def close(self):
         if self._conn:
