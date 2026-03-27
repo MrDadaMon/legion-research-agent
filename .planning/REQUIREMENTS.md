@@ -15,19 +15,19 @@
 
 ### Storage
 
-- [ ] **STORAGE-01**: Content stored in SQLite with fields: id, source_type, source_url, title, raw_content, processed_date, content_hash
-- [ ] **STORAGE-02**: Duplicate content detected via content_hash, reference_count incremented
-- [ ] **STORAGE-03**: Human-readable markdown file created per content item, organized by auto-detected topic
-- [ ] **STORAGE-04**: SQLite and markdown files kept in sync (SQLite is source of truth)
-- [ ] **STORAGE-05**: Topics auto-created and merged as patterns emerge
+- [x] **STORAGE-01**: Content stored in SQLite with fields: id, source_type, source_url, title, raw_content, processed_date, content_hash
+- [x] **STORAGE-02**: Duplicate content detected via content_hash, reference_count incremented
+- [x] **STORAGE-03**: Human-readable markdown file created per content item, organized by auto-detected topic
+- [x] **STORAGE-04**: SQLite and markdown files kept in sync (SQLite is source of truth)
+- [x] **STORAGE-05**: Topics auto-created and merged as patterns emerge
 
 ### Summary Flow
 
-- [ ] **SUMMARY-01**: After processing content, agent presents 4-option quick-select: Quick Summary / Full Breakdown / Ask a Question / Save for Later
-- [ ] **SUMMARY-02**: Quick Summary returns 3-5 key points in bullet format
-- [ ] **SUMMARY-03**: Full Breakdown returns structured notes: timestamps, key quotes, follow-up questions
-- [ ] **SUMMARY-04**: "Ask a Question" mode lets user type a question about the content
-- [ ] **SUMMARY-05**: "Save for Later" defers processing, stores URL for future retrieval
+- [x] **SUMMARY-01**: After processing content, agent presents 4-option quick-select: Quick Summary / Full Breakdown / Ask a Question / Save for Later
+- [x] **SUMMARY-02**: Quick Summary returns 3-5 key points in bullet format
+- [x] **SUMMARY-03**: Full Breakdown returns structured notes: timestamps, key quotes, follow-up questions
+- [x] **SUMMARY-04**: "Ask a Question" mode lets user type a question about the content
+- [x] **SUMMARY-05**: "Save for Later" defers processing, stores URL for future retrieval
 
 ### Preference Tracking
 
