@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A persistent research analyst agent that runs 24/7 on Legion. You throw any content at it — videos, articles, papers, books, reels, raw text — and it extracts, stores, summarizes, and learns from everything. It remembers what you've liked and rejected, surfaces relevant knowledge in conversations, warns you when you're about to repeat a rejected approach, and compares conflicting sources when you ask.
+A persistent research analyst agent that runs 24/7 on Legion. You throw any content at it — videos, articles, papers, books, reels, raw text — and it extracts, stores, summarizes, and learns from everything. It remembers what you've liked and rejected, surfaces relevant knowledge in conversations, warns you when you're about to repeat a rejected approach, and compares conflicting sources when you ask. In v2.0, it becomes a full research workstation with visual knowledge graphs, free AI processing, and self-improving patterns.
 
 Core value: A persistent research memory that learns what you like/dislike and surfaces the right knowledge at the right time.
 
@@ -10,22 +10,38 @@ Core value: A persistent research memory that learns what you like/dislike and s
 
 You stop re-watching videos to find one thing you vaguely remember. Everything you've ever sent it is searchable, comparable, and alive in your conversations.
 
+## Current Milestone: v2.0 Research Stack Upgrade
+
+**Goal:** Transform Legion from a research database into a full research workstation matching the Chase workflow — Obsidian vault for visual knowledge graphs, notebook-lm-pi for free AI processing, yt-dlp for YouTube sourcing, deliverable generation, and a self-improving agent loop.
+
+**Target features:**
+- Obsidian vault integration (markdown vault becomes visual knowledge graph)
+- notebook-lm-pi integration (free AI RAG + deliverable generation)
+- yt-dlp YouTube search skill (zero-cost content discovery)
+- Research deliverable outputs (infographics, slide decks, podcasts)
+- Self-improving CLAUDE.md: agent updates conventions based on interaction patterns
+
 ## Requirements
 
-### Active
+### Validated (v1.0 — shipped)
 
-- [ ] Agent runs persistently on Legion, loads on startup
-- [ ] Content intake: paste links (YouTube, articles, PDFs) or raw text — auto-detects type
-- [ ] Extracts content using video-to-knowledge, article scrapers, PDF parsers
-- [ ] Stores in SQLite database + human-readable markdown files (synced)
-- [ ] After intake: quick-select menu (summary / full breakdown / ask question / save for later)
-- [ ] Topic categorization by content topic, not media type
-- [ ] Preference tracking: stores positive/negative reactions, comparison choices, rejections with reasons
-- [ ] Content surfacing: when you ask about something, agent pulls from knowledge base
-- [ ] Rejected approach warnings: if you mention/use something you rejected before, agent warns you
-- [ ] Conflict detection: when overlapping content detected, compare approaches and ask which you prefer
-- [ ] Gap detection: if 3+ pieces on same topic with no new content after 24h, ask if you want to explore
-- [ ] Research on demand: user asks "find me more like this" → agent asks targeting questions → then searches
+- ✓ Content intake: paste links (YouTube, articles, PDFs) or raw text — auto-detects type — Phase 1
+- ✓ SQLite + markdown sync with deduplication — Phase 1
+- ✓ Quick-select menu after intake — Phase 1
+- ✓ Preference tracking with explicit confirmation — Phase 2
+- ✓ Content surfacing with topic scoring — Phase 2
+- ✓ Conflict detection with embeddings (cosine sim 0.85) — Phase 3
+- ✓ Gap detection (3+ content, 24h idle) — Phase 3
+- ✓ Research on demand with targeting questions + cited results via Tavily — Phase 4
+
+### Active (v2.0)
+
+- [ ] Obsidian vault as primary knowledge graph (replaces plain content/ folder)
+- [ ] notebook-lm-pi integration for AI RAG processing and deliverables
+- [ ] yt-dlp YouTube search skill for zero-cost content discovery
+- [ ] Deliverable generation: infographics, slide decks, podcasts from research
+- [ ] Self-improving CLAUDE.md: agent updates conventions based on interaction patterns
+- [ ] Research session logging (track what was researched over time)
 
 ### Out of Scope
 
@@ -34,29 +50,39 @@ You stop re-watching videos to find one thing you vaguely remember. Everything y
 - Multi-user support — single user v1
 - Health monitoring dashboard — you'll notice if Legion is down
 - Cloudflare tunnel / remote access — local only for now
+- Full GraphRAG (Obsidian gives 80% of relationship mapping without the complexity)
 
 ## Context
 
 - Runs on Legion (Windows, 24/7)
 - Uses existing MCP tools internally: video-to-knowledge, exa-search, deep-research
-- Storage: SQLite (fast queries) + markdown files (human-readable)
+- v1.0 storage: SQLite (fast queries) + markdown files (human-readable)
+- v2.0 storage: Same SQLite + Obsidian vault (visual layer on top)
 - No communication layer yet — tested by pasting content directly in chat
+- Reference workflow: Chase's Claude Code + Obsidian + Notebook LM + Skill Creator stack
 
 ## Constraints
 
-- **Storage**: SQLite + markdown files, kept in sync — no external DB
+- **Storage**: SQLite + markdown files (v1.0), Obsidian vault (v2.0) — keep SQLite as source of truth
 - **Communication**: Local only, no remote access — Discord/Dispatch deferred
 - **Research**: Reactive only, never proactive without user direction
+- **Vendor**: notebook-lm-pi is unofficial API — keep Tavily as backup for research
+- **Legion compatibility**: notebook-lm-pi requires Google auth — needs browser login once
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Legion as host | Always-on, right place for persistent agent | — Pending |
-| SQLite + markdown | Fast queries + human-readable backup | — Pending |
-| No proactive research v1 | Core storage/surfacing first, intelligence later | — Pending |
-| Explicit preference signals | Don't infer, ask "should I remember that?" | — Pending |
-| Gap detection: 3+ pieces + 24h idle | Don't interrupt while user is still collecting | — Pending |
+| Legion as host | Always-on, right place for persistent agent | ✓ Confirmed v1.0 |
+| SQLite + markdown | Fast queries + human-readable backup | ✓ Confirmed v1.0 |
+| Explicit preference signals | Don't infer, ask "should I remember that?" | ✓ Confirmed v1.0 |
+| Gap detection: 3+ pieces + 24h idle | Don't interrupt while user is still collecting | ✓ Confirmed v1.0 |
+| Cosine similarity 0.85 threshold | Balance between precision and recall for conflict detection | ✓ Confirmed v1.0 |
+| Tavily for research | Web search with citations — primary research method | ✓ Confirmed v1.0 |
+| Obsidian vault (v2.0) | Visual knowledge graph + linked notes — replaces plain content/ folder | — New |
+| notebook-lm-pi (v2.0) | Free AI RAG + deliverables — offloads token cost to Google | — New |
+| yt-dlp (v2.0) | Zero-cost YouTube metadata scraping — complements Tavily | — New |
+| CLAUDE.md self-improvement (v2.0) | Agent updates conventions from interaction patterns | — New |
 
 ---
-*Last updated: 2026-03-26 after initial definition*
+*Last updated: 2026-03-27 after v1.0 complete, v2.0 milestone started*

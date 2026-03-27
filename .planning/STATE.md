@@ -1,66 +1,45 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: completed
-stopped_at: Completed 04-01 research-on-demand plan
-last_updated: "2026-03-27T07:34:41.922Z"
-last_activity: 2026-03-27 — 04-01 research-on-demand with Tavily API integration
+milestone: v2.0
+milestone_name: research-stack-upgrade
+status: defining_requirements
+stopped_at: v1.0 complete - starting v2.0 milestone
+last_updated: "2026-03-27T09:00:00.000Z"
+last_activity: 2026-03-27 — v1.0 complete, starting v2.0 research stack upgrade
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-26)
+See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** You stop re-watching videos to find one thing you vaguely remember. Everything you've ever sent it is searchable, comparable, and alive in your conversations.
-**Current focus:** Phase 4 - Research on Demand
+**Current focus:** v2.0 Research Stack Upgrade — Obsidian + notebook-lm-pi + yt-dlp + deliverables
 
 ## Current Position
 
-Phase: 4 of 4 (Research on Demand)
-Plan: 1 of 1 in current phase (04-01 complete)
-Status: All phases complete
-Last activity: 2026-03-27 — 04-01 research-on-demand with Tavily API integration
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v2.0
+Last activity: 2026-03-27 — v1.0 complete, starting v2.0 milestone
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
-## Performance Metrics
+## v1.0 Summary (Shipped)
 
-**Velocity:**
-- Total plans completed: 8
-- Average duration: 7 min
-- Total execution time: 0.9 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1 - Content Pipeline | 3 | 3 | 8.2 min |
-| 2 - Memory & Surfacing | 2 | 2 | 3.3 min |
-| 3 - Intelligence Layer | 1 | 2 | 25 min |
-| 4 - Research on Demand | 1 | 1 | 4 min |
-
-**Recent Trend:**
-- Last 6 plans: 01-01 (10 min), 01-02 (6.5 min), 01-03 (7.5 min), 02-02 (2.6 min), 03-01 (25 min)
-- Trend: Slower (03-01 was larger scope with embedding setup)
-
-*Updated after each plan completion*
-| Phase 01-content-pipeline P01 | 10 min | 3 tasks | 11 files |
-| Phase 01-content-pipeline P02 | 6.5 min | 3 tasks | 19 files |
-| Phase 01-content-pipeline P03 | 7.5 min | 3 tasks | 5 files |
-| Phase 02-memory-surfacing P01 | 4 min | 4 tasks | 6 files |
-| Phase 02-memory-surfacing P02 | 2.6 min | 3 tasks | 3 files |
-| Phase 03-intelligence-layer P01 | 25 min | 3 tasks | 6 files |
-| Phase 03-intelligence-layer P03-02 | 5 | 1 tasks | 2 files |
-| Phase 04 P04-01 | 4 | 4 tasks | 5 files |
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 1. Content Pipeline | 3/3 | ✓ Complete |
+| 2. Memory & Surfacing | 2/2 | ✓ Complete |
+| 3. Intelligence Layer | 2/2 | ✓ Complete |
+| 4. Research on Demand | 1/1 | ✓ Complete |
 
 ## Accumulated Context
 
@@ -75,10 +54,11 @@ Recent decisions affecting current work:
 - Phase 3: sqlite-vec for local vector storage (keeps everything in SQLite)
 - Phase 3: all-MiniLM-L6-v2 for 384-dim embeddings (free, local, CPU-friendly)
 - Phase 3: Cosine similarity 0.85 threshold, keyword OPPOSING_PAIRS for disagreement
-- Phase 4: Targeting questions before research, cite all results
-- [Phase 03-02]: GAP detection uses COMMON_TRADING_SUBTOPICS to identify missing content areas
-- [Phase 04]: Use TavilyClient.research() endpoint for comprehensive cited results
-- [Phase 04]: Generalize ask_targeting_questions into ask_research_targeting_questions for code reuse
+- Phase 4: Targeting questions before research, cite all results via Tavily
+- v2.0: Obsidian vault as visual knowledge graph layer on content
+- v2.0: notebook-lm-pi for free AI RAG processing and deliverables
+- v2.0: yt-dlp for zero-cost YouTube content discovery
+- v2.0: CLAUDE.md self-improvement loop
 
 ### Pending Todos
 
@@ -94,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T07:31:14.379Z
-Stopped at: Completed 04-01 research-on-demand plan
+Last session: 2026-03-27T09:00:00.000Z
+Stopped at: v1.0 complete, starting v2.0 milestone
 Resume file: None
