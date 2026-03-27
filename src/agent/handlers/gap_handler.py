@@ -5,6 +5,7 @@ from typing import Optional
 
 from src.storage.database import Database
 from src.models.content import ContentItem
+from src.agent.research_utils import ask_research_targeting_questions
 
 
 # Constants from 03-RESEARCH.md
@@ -137,46 +138,6 @@ async def present_gap_suggestion(
         return 'never'
 
 
-async def ask_targeting_questions(
-    topic_name: str,
-    existing_content: list[ContentItem],
-    db: Database,
-) -> dict | None:
-    """Ask 1-2 targeting questions before gap research.
-
-    Returns dict with user's answers or None if user declined.
-    """
-    # Extract subtopic options from existing content
-    gaps = identify_gaps_from_content(topic_name.replace('-', ' '), existing_content)
-
-    subtopic_choices = gaps[:3] if gaps else ["General overview", "Best practices", "Common mistakes"]
-    subtopic_choices.append("Other")
-
-    # Question 1: What aspect are you most interested in?
-    aspect = await questionary.select(
-        f"\n[Gap Research - Targeting Questions]\n\n"
-        f"Before I research gaps for \"{topic_name}\", a few quick questions:\n\n"
-        f"1. What aspect of \"{topic_name}\" are you most interested in?",
-        choices=subtopic_choices,
-    ).ask_async()
-
-    if aspect == "Other":
-        aspect = await questionary.text(
-            "What specific aspect would you like to explore?"
-        ).ask_async()
-
-    # Question 2: Is there anything specific you've been wondering about?
-    specific = await questionary.text(
-        "\n2. Is there anything specific you've been wondering about?\n"
-        "(Press Enter to skip)"
-    ).ask_async()
-
-    return {
-        'aspect': aspect if aspect != "Other" else None,
-        'specific': specific if specific else None,
-    }
-
-
 async def present_gap_results(
     topic_name: str,
     gaps: list[dict],
@@ -296,7 +257,7 @@ async def check_and_suggest_gap(
         return True
 
     # User said yes - ask targeting questions
-    answers = await ask_targeting_questions(topic_name, content_items, db)
+    answers = await ask_research_targeting_questions(topic_name, content_items)
 
     if answers is None:
         return True  # User declined
