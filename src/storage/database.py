@@ -55,6 +55,20 @@ class Database:
             "CREATE INDEX IF NOT EXISTS idx_content_hash ON content(content_hash)"
         )
 
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS preferences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic TEXT NOT NULL,
+                preference_type TEXT NOT NULL CHECK(preference_type IN ('prefer', 'reject')),
+                approach TEXT NOT NULL,
+                reason TEXT,
+                source_content_id INTEGER REFERENCES content(id) ON DELETE SET NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+        await self._conn.execute("CREATE INDEX IF NOT EXISTS idx_preferences_topic ON preferences(topic)")
+        await self._conn.execute("CREATE INDEX IF NOT EXISTS idx_preferences_type ON preferences(preference_type)")
+
         await self._conn.commit()
 
     async def insert_content(self, item: ContentItem) -> int:
@@ -208,6 +222,63 @@ class Database:
             )
             for row in rows
         ]
+
+    async def insert_preference(
+        self,
+        topic: str,
+        preference_type: str,
+        approach: str,
+        reason: str | None = None,
+        source_content_id: int | None = None
+    ) -> int:
+        """Insert a preference or rejection. Returns the row id."""
+        await self._ensure_connection()
+        cursor = await self._conn.execute("""
+            INSERT INTO preferences (topic, preference_type, approach, reason, source_content_id, created_at)
+            VALUES (?, ?, ?, ?, ?, datetime('now'))
+        """, (topic, preference_type, approach, reason, source_content_id))
+        await self._conn.commit()
+        return cursor.lastrowid
+
+    async def get_preferences(self, topic: str | None = None, preference_type: str | None = None) -> list[dict]:
+        """Get preferences, optionally filtered by topic and/or type."""
+        await self._ensure_connection()
+        query = "SELECT * FROM preferences WHERE 1=1"
+        params = []
+        if topic:
+            query += " AND topic = ?"
+            params.append(topic)
+        if preference_type:
+            query += " AND preference_type = ?"
+            params.append(preference_type)
+        query += " ORDER BY created_at DESC"
+        cursor = await self._conn.execute(query, params)
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def get_rejections(self, topic: str | None = None) -> list[dict]:
+        """Get all rejections, optionally filtered by topic."""
+        return await self.get_preferences(topic=topic, preference_type='reject')
+
+    async def check_rejection_match(self, user_message: str) -> list[dict]:
+        """Check if user message mentions any rejected approaches. Returns list of {approach, reason, topic}."""
+        import re
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            "SELECT topic, approach, reason FROM preferences WHERE preference_type = 'reject'"
+        )
+        rejections = await cursor.fetchall()
+        user_lower = user_message.lower()
+        matches = []
+        for rejection in rejections:
+            pattern = r'\b' + re.escape(rejection['approach'].lower()) + r'\b'
+            if re.search(pattern, user_lower):
+                matches.append({
+                    'topic': rejection['topic'],
+                    'approach': rejection['approach'],
+                    'reason': rejection['reason']
+                })
+        return matches
 
     async def close(self):
         if self._conn:
