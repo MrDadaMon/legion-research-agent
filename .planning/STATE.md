@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02 gap detection plan
-last_updated: "2026-03-27T06:16:17.200Z"
+stopped_at: Completed 04-01 research-on-demand plan
+last_updated: "2026-03-27T07:31:14.384Z"
 last_activity: 2026-03-27 — 03-01 conflict detection with embedding similarity and resolution flow
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
   percent: 60
 ---
 
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** You stop re-watching videos to find one thing you vaguely remember. Everything you've ever sent it is searchable, comparable, and alive in your conversations.
-**Current focus:** Phase 2 - Memory & Surfacing
+**Current focus:** Phase 4 - Research on Demand
 
 ## Current Position
 
-Phase: 3 of 4 (Intelligence Layer)
-Plan: 1 of 2 in current phase (03-01 complete)
-Status: In progress
-Last activity: 2026-03-27 — 03-01 conflict detection with embedding similarity and resolution flow
+Phase: 4 of 4 (Research on Demand)
+Plan: 1 of 1 in current phase (04-01 complete)
+Status: All phases complete
+Last activity: 2026-03-27 — 04-01 research-on-demand with Tavily API integration
 
-Progress: [██████░░░░] 60%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 8
 - Average duration: 7 min
-- Total execution time: 0.7 hours
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -46,7 +46,7 @@ Progress: [██████░░░░] 60%
 | 1 - Content Pipeline | 3 | 3 | 8.2 min |
 | 2 - Memory & Surfacing | 2 | 2 | 3.3 min |
 | 3 - Intelligence Layer | 1 | 2 | 25 min |
-| 4 - Research on Demand | 0 | 1 | - |
+| 4 - Research on Demand | 1 | 1 | 4 min |
 
 **Recent Trend:**
 - Last 6 plans: 01-01 (10 min), 01-02 (6.5 min), 01-03 (7.5 min), 02-02 (2.6 min), 03-01 (25 min)
@@ -60,6 +60,7 @@ Progress: [██████░░░░] 60%
 | Phase 02-memory-surfacing P02 | 2.6 min | 3 tasks | 3 files |
 | Phase 03-intelligence-layer P01 | 25 min | 3 tasks | 6 files |
 | Phase 03-intelligence-layer P03-02 | 5 | 1 tasks | 2 files |
+| Phase 04 P04-01 | 4 | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Recent decisions affecting current work:
 - Phase 3: Cosine similarity 0.85 threshold, keyword OPPOSING_PAIRS for disagreement
 - Phase 4: Targeting questions before research, cite all results
 - [Phase 03-02]: GAP detection uses COMMON_TRADING_SUBTOPICS to identify missing content areas
+- [Phase 04]: Use TavilyClient.research() endpoint for comprehensive cited results
+- [Phase 04]: Generalize ask_targeting_questions into ask_research_targeting_questions for code reuse
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T06:12:37.745Z
-Stopped at: Completed 03-02 gap detection plan
+Last session: 2026-03-27T07:31:14.379Z
+Stopped at: Completed 04-01 research-on-demand plan
 Resume file: None

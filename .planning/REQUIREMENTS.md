@@ -56,9 +56,9 @@
 
 ### Research on Demand
 
-- [ ] **RESEARCH-01**: User can say "find me more like this" on any stored content
-- [ ] **RESEARCH-02**: Agent asks 1-2 targeting questions before searching
-- [ ] **RESEARCH-03**: Results returned with citations, source URLs, and relevance explanation
+- [x] **RESEARCH-01**: User can say "find me more like this" on any stored content
+- [x] **RESEARCH-02**: Agent asks 1-2 targeting questions before searching
+- [x] **RESEARCH-03**: Results returned with citations, source URLs, and relevance explanation
 
 ## v2 Requirements
 
