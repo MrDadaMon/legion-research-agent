@@ -38,9 +38,9 @@
 
 ### Content Surfacing
 
-- [ ] **SURFACE-01**: User can ask "what do I have on X?" and agent returns relevant content with sources
-- [ ] **SURFACE-02**: Agent proactively surfaces relevant knowledge during conversations when context matches
-- [ ] **SURFACE-03**: Each surfacing includes source URL, date, and brief description
+- [x] **SURFACE-01**: User can ask "what do I have on X?" and agent returns relevant content with sources
+- [x] **SURFACE-02**: Agent proactively surfaces relevant knowledge during conversations when context matches
+- [x] **SURFACE-03**: Each surfacing includes source URL, date, and brief description
 
 ### Conflict Detection
 
@@ -101,7 +101,7 @@
 | STORAGE-01 through STORAGE-05 | Phase 1 | Pending |
 | SUMMARY-01 through SUMMARY-05 | Phase 1 | Pending |
 | PREF-01 through PREF-04 | Phase 2 | Pending |
-| SURFACE-01 through SURFACE-03 | Phase 2 | Pending |
+| SURFACE-01 through SURFACE-03 | Phase 2 | Complete (02-02) |
 | CONFLICT-01 through CONFLICT-03 | Phase 3 | Pending |
 | GAP-01 through GAP-03 | Phase 3 | Pending |
 | RESEARCH-01 through RESEARCH-03 | Phase 4 | Pending |
@@ -113,4 +113,4 @@
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after initial definition*
+*Last updated: 2026-03-27 after 02-02 complete*

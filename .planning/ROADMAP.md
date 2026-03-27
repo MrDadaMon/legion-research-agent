@@ -49,7 +49,7 @@ Plans:
 
 Plans:
 - [ ] 02-01: Preference tracking with confirmation loop, rejection storage, warning system
-- [ ] 02-02: Content surfacing with topic queries and proactive knowledge delivery
+- [x] 02-02: Content surfacing with topic queries and proactive knowledge delivery
 
 ### Phase 3: Intelligence Layer
 **Goal**: Agent detects conflicts and gaps in user's knowledge base
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Content Pipeline | 3/3 | Complete    | 2026-03-27 |
-| 2. Memory & Surfacing | 0/2 | Not started | - |
+| 2. Memory & Surfacing | 1/2 | In progress | - |
 | 3. Intelligence Layer | 0/2 | Not started | - |
 | 4. Research on Demand | 0/1 | Not started | - |
 
