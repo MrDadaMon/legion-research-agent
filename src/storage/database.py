@@ -1,0 +1,215 @@
+import aiosqlite
+import re
+from datetime import datetime
+
+from src.models import ContentItem, Topic, compute_content_hash, slugify
+
+
+class Database:
+    def __init__(self, db_path: str = "knowledge/legion.db"):
+        self.db_path = db_path
+        self._conn: aiosqlite.Connection | None = None
+
+    async def _ensure_connection(self):
+        if self._conn is None:
+            self._conn = await aiosqlite.connect(self.db_path)
+            self._conn.row_factory = aiosqlite.Row
+            await self._init_db()
+
+    async def _init_db(self):
+        await self._conn.execute("PRAGMA journal_mode=WAL")
+        await self._conn.execute("PRAGMA busy_timeout=5000")
+        await self._conn.execute("PRAGMA foreign_keys=ON")
+
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS content (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                source_type TEXT NOT NULL,
+                source_url TEXT,
+                title TEXT NOT NULL,
+                raw_content TEXT NOT NULL,
+                processed_date TEXT NOT NULL,
+                content_hash TEXT UNIQUE NOT NULL,
+                reference_count INTEGER DEFAULT 1
+            )
+        """)
+
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS topics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                slug TEXT NOT NULL UNIQUE,
+                created_at TEXT NOT NULL
+            )
+        """)
+
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS content_topics (
+                content_id INTEGER REFERENCES content(id) ON DELETE CASCADE,
+                topic_id INTEGER REFERENCES topics(id) ON DELETE CASCADE,
+                PRIMARY KEY (content_id, topic_id)
+            )
+        """)
+
+        await self._conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_content_hash ON content(content_hash)"
+        )
+
+        await self._conn.commit()
+
+    async def insert_content(self, item: ContentItem) -> int:
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            """
+            INSERT OR IGNORE INTO content
+                (source_type, source_url, title, raw_content, processed_date, content_hash, reference_count)
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+            """,
+            (
+                item.source_type,
+                item.source_url,
+                item.title,
+                item.raw_content,
+                item.processed_date,
+                item.content_hash,
+            ),
+        )
+        await self._conn.commit()
+
+        if cursor.rowcount == 0:
+            await self._conn.execute(
+                """
+                UPDATE content SET reference_count = reference_count + 1
+                WHERE content_hash = ?
+                """,
+                (item.content_hash,),
+            )
+            await self._conn.commit()
+
+        cursor = await self._conn.execute(
+            "SELECT id FROM content WHERE content_hash = ?", (item.content_hash,)
+        )
+        row = await cursor.fetchone()
+        return row["id"]
+
+    async def get_content(self, content_id: int) -> ContentItem | None:
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            "SELECT * FROM content WHERE id = ?", (content_id,)
+        )
+        row = await cursor.fetchone()
+        if row is None:
+            return None
+        return ContentItem(
+            id=row["id"],
+            source_type=row["source_type"],
+            source_url=row["source_url"],
+            title=row["title"],
+            raw_content=row["raw_content"],
+            processed_date=row["processed_date"],
+            content_hash=row["content_hash"],
+            reference_count=row["reference_count"],
+        )
+
+    async def get_all_content(self) -> list[ContentItem]:
+        await self._ensure_connection()
+        cursor = await self._conn.execute("SELECT * FROM content ORDER BY id")
+        rows = await cursor.fetchall()
+        return [
+            ContentItem(
+                id=row["id"],
+                source_type=row["source_type"],
+                source_url=row["source_url"],
+                title=row["title"],
+                raw_content=row["raw_content"],
+                processed_date=row["processed_date"],
+                content_hash=row["content_hash"],
+                reference_count=row["reference_count"],
+            )
+            for row in rows
+        ]
+
+    async def content_exists_by_hash(self, content_hash: str) -> bool:
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            "SELECT 1 FROM content WHERE content_hash = ? LIMIT 1",
+            (content_hash,),
+        )
+        row = await cursor.fetchone()
+        return row is not None
+
+    async def get_or_create_topic(self, name: str) -> tuple[int, str]:
+        await self._ensure_connection()
+        topic_slug = slugify(name)
+        created_at = datetime.now().isoformat()
+
+        await self._conn.execute(
+            """
+            INSERT OR IGNORE INTO topics (name, slug, created_at)
+            VALUES (?, ?, ?)
+            """,
+            (name, topic_slug, created_at),
+        )
+        await self._conn.commit()
+
+        cursor = await self._conn.execute(
+            "SELECT id FROM topics WHERE slug = ?", (topic_slug,)
+        )
+        row = await cursor.fetchone()
+        return row["id"], topic_slug
+
+    async def link_content_to_topic(self, content_id: int, topic_id: int) -> None:
+        await self._ensure_connection()
+        await self._conn.execute(
+            """
+            INSERT OR IGNORE INTO content_topics (content_id, topic_id)
+            VALUES (?, ?)
+            """,
+            (content_id, topic_id),
+        )
+        await self._conn.commit()
+
+    async def get_content_topics(self, content_id: int) -> list[str]:
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            """
+            SELECT t.slug FROM topics t
+            JOIN content_topics ct ON ct.topic_id = t.id
+            WHERE ct.content_id = ?
+            """,
+            (content_id,),
+        )
+        rows = await cursor.fetchall()
+        return [row["slug"] for row in rows]
+
+    async def get_topic_content(self, topic_slug: str) -> list[ContentItem]:
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            """
+            SELECT c.* FROM content c
+            JOIN content_topics ct ON ct.content_id = c.id
+            JOIN topics t ON t.id = ct.topic_id
+            WHERE t.slug = ?
+            ORDER BY c.id
+            """,
+            (topic_slug,),
+        )
+        rows = await cursor.fetchall()
+        return [
+            ContentItem(
+                id=row["id"],
+                source_type=row["source_type"],
+                source_url=row["source_url"],
+                title=row["title"],
+                raw_content=row["raw_content"],
+                processed_date=row["processed_date"],
+                content_hash=row["content_hash"],
+                reference_count=row["reference_count"],
+            )
+            for row in rows
+        ]
+
+    async def close(self):
+        if self._conn:
+            await self._conn.close()
+            self._conn = None
