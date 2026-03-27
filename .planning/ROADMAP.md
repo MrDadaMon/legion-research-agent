@@ -31,9 +31,9 @@ A persistent research analyst that runs 24/7 on Legion, learning from everything
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Asyncio agent core with intake handlers (YouTube, article, raw text, PDF)
-- [ ] 01-02: SQLite storage with WAL mode, markdown sync, deduplication
-- [ ] 01-03: Summary flow with quick-select menu and all four modes
+- [x] 01-01: Storage foundation - SQLite WAL mode, markdown sync, deduplication (wave 1)
+- [x] 01-02: Asyncio agent core with intake handlers (wave 2)
+- [x] 01-03: Summary flow with quick-select menu (wave 3)
 
 ### Phase 2: Memory & Surfacing
 **Goal**: Agent remembers preferences and proactively surfaces relevant knowledge
