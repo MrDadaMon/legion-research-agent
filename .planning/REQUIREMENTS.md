@@ -50,9 +50,9 @@
 
 ### Gap Detection
 
-- [ ] **GAP-01**: After 3+ pieces of content on same topic with 24h+ idle, agent suggests gap exploration
-- [ ] **GAP-02**: Agent asks targeting questions before initiating gap research
-- [ ] **GAP-03**: Gap research results presented for user to decide whether to incorporate
+- [x] **GAP-01**: After 3+ pieces of content on same topic with 24h+ idle, agent suggests gap exploration
+- [x] **GAP-02**: Agent asks targeting questions before initiating gap research
+- [x] **GAP-03**: Gap research results presented for user to decide whether to incorporate
 
 ### Research on Demand
 
