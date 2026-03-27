@@ -44,9 +44,9 @@
 
 ### Conflict Detection
 
-- [ ] **CONFLICT-01**: When new content overlaps with existing content on same topic, agent flags potential conflict
-- [ ] **CONFLICT-02**: Agent presents key points of disagreement between conflicting sources
-- [ ] **CONFLICT-03**: User resolves conflict by choosing preferred approach, which updates preference profile
+- [x] **CONFLICT-01**: When new content overlaps with existing content on same topic, agent flags potential conflict
+- [x] **CONFLICT-02**: Agent presents key points of disagreement between conflicting sources
+- [x] **CONFLICT-03**: User resolves conflict by choosing preferred approach, which updates preference profile
 
 ### Gap Detection
 
@@ -102,8 +102,8 @@
 | SUMMARY-01 through SUMMARY-05 | Phase 1 | Pending |
 | PREF-01 through PREF-04 | Phase 2 | Pending |
 | SURFACE-01 through SURFACE-03 | Phase 2 | Complete (02-02) |
-| CONFLICT-01 through CONFLICT-03 | Phase 3 | Pending |
-| GAP-01 through GAP-03 | Phase 3 | Pending |
+| CONFLICT-01 through CONFLICT-03 | Phase 3 | Complete (03-01) |
+| GAP-01 through GAP-03 | Phase 3 | Complete (03-02) |
 | RESEARCH-01 through RESEARCH-03 | Phase 4 | Pending |
 
 **Coverage:**
