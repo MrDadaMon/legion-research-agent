@@ -7,7 +7,7 @@ A persistent research analyst that runs 24/7 on Legion, learning from everything
 ## Phases
 
 - [x] **Phase 1: Content Pipeline** - Agent foundation: intake, extraction, SQLite storage, markdown sync, summary flow (completed 2026-03-27)
-- [ ] **Phase 2: Memory & Surfacing** - Preference tracking, rejection warnings, proactive surfacing, topic management
+- [x] **Phase 2: Memory & Surfacing** - Preference tracking, rejection warnings, proactive surfacing, topic management (completed 2026-03-27)
 - [ ] **Phase 3: Intelligence Layer** - Conflict detection with resolution flow, gap detection with research suggestions
 - [ ] **Phase 4: Research on Demand** - Targeted research with clarification questions, cited results
 
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Content Pipeline | 3/3 | Complete    | 2026-03-27 |
-| 2. Memory & Surfacing | 1/2 | In progress | - |
+| 2. Memory & Surfacing | 2/2 | Complete   | 2026-03-27 |
 | 3. Intelligence Layer | 0/2 | Not started | - |
 | 4. Research on Demand | 0/1 | Not started | - |
 

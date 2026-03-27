@@ -31,10 +31,10 @@
 
 ### Preference Tracking
 
-- [ ] **PREF-01**: After comparison, agent asks "Should I remember that you prefer X over Y?" before updating profile
-- [ ] **PREF-02**: Rejections stored with: topic, approach, reason, date, source content
-- [ ] **PREF-03**: Preference profile human-readable and rewriteable (not just append)
-- [ ] **PREF-04**: Rejected approach warning fires when user mentions or uses a rejected approach
+- [x] **PREF-01**: After comparison, agent asks "Should I remember that you prefer X over Y?" before updating profile
+- [x] **PREF-02**: Rejections stored with: topic, approach, reason, date, source content
+- [x] **PREF-03**: Preference profile human-readable and rewriteable (not just append)
+- [x] **PREF-04**: Rejected approach warning fires when user mentions or uses a rejected approach
 
 ### Content Surfacing
 
