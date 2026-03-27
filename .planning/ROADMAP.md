@@ -79,7 +79,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: Research on demand with targeting questions and cited results
+- [x] 04-01: Research on demand with targeting questions, Tavily API integration, and cited results
 
 ## Progress
 
@@ -91,7 +91,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. Content Pipeline | 3/3 | Complete    | 2026-03-27 |
 | 2. Memory & Surfacing | 2/2 | Complete   | 2026-03-27 |
 | 3. Intelligence Layer | 2/2 | Complete   | 2026-03-27 |
-| 4. Research on Demand | 0/1 | Not started | - |
+| 4. Research on Demand | 1/1 | Planned | - |
 
 ## Coverage
 
@@ -106,3 +106,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 - RESEARCH-01, RESEARCH-02, RESEARCH-03 -> Phase 4
 
 **Coverage:** 22/22 requirements mapped
+
+---
+
+*Last updated: 2026-03-27 after 04-01 planning*
