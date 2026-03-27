@@ -65,7 +65,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Conflict detection with overlap flagging, disagreement presentation, resolution flow
+- [x] 03-01: Conflict detection with overlap flagging, disagreement presentation, resolution flow
 - [ ] 03-02: Gap detection with idle monitoring, targeting questions, research presentation
 
 ### Phase 4: Research on Demand
@@ -90,7 +90,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. Content Pipeline | 3/3 | Complete    | 2026-03-27 |
 | 2. Memory & Surfacing | 2/2 | Complete   | 2026-03-27 |
-| 3. Intelligence Layer | 0/2 | Plans ready | - |
+| 3. Intelligence Layer | 1/2 | In progress | - |
 | 4. Research on Demand | 0/1 | Not started | - |
 
 ## Coverage

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01 preference tracking plan
-last_updated: "2026-03-27T04:43:19.238Z"
-last_activity: 2026-03-27 — 02-02 content surfacing with topic queries and proactive delivery
+stopped_at: Completed 03-01 conflict detection plan
+last_updated: "2026-03-27T06:05:00.000Z"
+last_activity: 2026-03-27 — 03-01 conflict detection with embedding similarity and resolution flow
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 50
+  completed_plans: 6
+  total_plans: 6
+  percent: 60
 ---
 
 # Project State
@@ -25,39 +25,40 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 2 of 4 (Memory & Surfacing)
-Plan: 1 of 2 in current phase (02-02 complete)
+Phase: 3 of 4 (Intelligence Layer)
+Plan: 1 of 2 in current phase (03-01 complete)
 Status: In progress
-Last activity: 2026-03-27 — 02-02 content surfacing with topic queries and proactive delivery
+Last activity: 2026-03-27 — 03-01 conflict detection with embedding similarity and resolution flow
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 6 min
-- Total execution time: 0.4 hours
+- Total plans completed: 6
+- Average duration: 7 min
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 - Content Pipeline | 3 | 3 | 8.2 min |
-| 2 - Memory & Surfacing | 1 | 2 | 2.6 min |
-| 3 - Intelligence Layer | 0 | 2 | - |
+| 2 - Memory & Surfacing | 2 | 2 | 3.3 min |
+| 3 - Intelligence Layer | 1 | 2 | 25 min |
 | 4 - Research on Demand | 0 | 1 | - |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (10 min), 01-02 (6.5 min), 01-03 (7.5 min), 02-02 (2.6 min)
-- Trend: Faster
+- Last 6 plans: 01-01 (10 min), 01-02 (6.5 min), 01-03 (7.5 min), 02-02 (2.6 min), 03-01 (25 min)
+- Trend: Slower (03-01 was larger scope with embedding setup)
 
 *Updated after each plan completion*
 | Phase 01-content-pipeline P01 | 10 min | 3 tasks | 11 files |
 | Phase 01-content-pipeline P02 | 6.5 min | 3 tasks | 19 files |
 | Phase 01-content-pipeline P03 | 7.5 min | 3 tasks | 5 files |
+| Phase 02-memory-surfacing P01 | 4 min | 4 tasks | 6 files |
 | Phase 02-memory-surfacing P02 | 2.6 min | 3 tasks | 3 files |
-| Phase 02-memory-surfacing P01 | 4 | 4 tasks | 6 files |
+| Phase 03-intelligence-layer P01 | 25 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -69,9 +70,10 @@ Recent decisions affecting current work:
 - Phase 1: Asyncio agent loop, SQLite WAL mode, markdown sync, multi-format intake
 - Phase 2: Explicit preference confirmation (ask before remembering), not inference-based
 - Phase 2: Surfacing uses topic (+2pts) and title (+1pt) keyword scoring
-- Phase 3: Conflict threshold and gap detection timing based on research recommendations
+- Phase 3: sqlite-vec for local vector storage (keeps everything in SQLite)
+- Phase 3: all-MiniLM-L6-v2 for 384-dim embeddings (free, local, CPU-friendly)
+- Phase 3: Cosine similarity 0.85 threshold, keyword OPPOSING_PAIRS for disagreement
 - Phase 4: Targeting questions before research, cite all results
-- [Phase 02]: Explicit confirmation loop before memory (not inference-based)
 
 ### Pending Todos
 
@@ -87,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T04:40:38.538Z
-Stopped at: Completed 02-01 preference tracking plan
+Last session: 2026-03-27T05:40:39.000Z
+Stopped at: Completed 03-01 conflict detection plan
 Resume file: None
