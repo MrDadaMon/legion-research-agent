@@ -32,8 +32,8 @@ A persistent research analyst that runs 24/7 on Legion, learning from everything
 
 Plans:
 - [x] 01-01: Storage foundation - SQLite WAL mode, markdown sync, deduplication (wave 1)
-- [x] 01-02: Asyncio agent core with intake handlers (wave 2)
-- [x] 01-03: Summary flow with quick-select menu (wave 3)
+- [ ] 01-02: Asyncio agent core with intake handlers (wave 2)
+- [ ] 01-03: Summary flow with quick-select menu (wave 3)
 
 ### Phase 2: Memory & Surfacing
 **Goal**: Agent remembers preferences and proactively surfaces relevant knowledge
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Content Pipeline | 0/3 | Not started | - |
+| 1. Content Pipeline | 1/3 | In progress | 2026-03-27 |
 | 2. Memory & Surfacing | 0/2 | Not started | - |
 | 3. Intelligence Layer | 0/2 | Not started | - |
 | 4. Research on Demand | 0/1 | Not started | - |
