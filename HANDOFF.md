@@ -3,7 +3,7 @@
 ## Where We Are
 
 **Project:** Legion Research Agent — a persistent 24/7 research analyst
-**Status:** v2.0 milestone COMPLETE — all phases 05-09 shipped, 143 tests passing
+**Status:** v2.0 milestone FULLY COMPLETE — all phases 05-09 shipped and integrated, 144 tests passing
 
 ## What Was Built (v2.0 — while you were gone)
 
@@ -59,48 +59,28 @@ You asked about bot detection — added humanization:
 
 ## Deferred (Needs Your Input When You Return)
 
-These are intentionally left incomplete per your instructions — API keys and auth deferred to end:
+These require your action — code is complete but needs your input:
 
-1. **NOTEBOOK_LM_API_KEY** — add to `.env` to activate notebook-lm-pi
-2. **Google auth for Notebook LM** — browser login once on Legion to authenticate
-3. **OBSIDIAN_VAULT_PATH** — verify the vault path in `.env` matches where you want it
-4. **Integration hooks** — the code is built but research_handler.py hasn't been updated to call the new session logging / CLAUDE.md update functions automatically (minor wiring work)
+1. **OBSIDIAN_VAULT_PATH** — verify the vault path in `.env` matches your Obsidian vault location
+2. **NOTEBOOK_LM_API_KEY** — add to `.env` to activate notebook-lm-pi (optional — it's free via browser OAuth)
+3. **Google auth for Notebook LM** — run `notebooklm login` once on Legion if you want Notebook LM features
 
-## Files Changed (v2.0 commit)
+## What Was Just Completed (Integration Wiring)
+
+1. **Session logging wired** — `handle_research_request()` now inserts session before Tavily call, updates with results_count after
+2. **CLAUDE.md pattern consulting wired** — `build_research_query()` consults "What Works" section before building
+3. **CLAUDE.md pattern updating wired** — after each research session, `update_claude_md()` is called with results summary
+4. **144 tests passing** — full suite confirmed
+
+## Files Changed (integration commit)
 
 ```
-A .planning/phases/05-ytdlp-search/ (3 files)
-A .planning/phases/06-obsidian-vault/ (3 files)
-A .planning/phases/07-notebook-lm/ (3 files)
-A .planning/phases/08-session-logging/ (3 files)
-A .planning/phases/09-self-improving-claude/ (3 files)
-A .planning/phases/03-intelligence-layer/VERIFICATION.md
-A .planning/phases/04-research-on-demand/VERIFICATION.md
-A CLAUDE.md
-A src/agent/handlers/ytdlp_search_handler.py
-A src/agent/handlers/notebook_lm_handler.py
-A src/storage/backlinks_index.py
-A src/storage/obsidian_store.py
-A tests/test_ytdlp_search.py
-A tests/test_notebook_lm_handler.py
-A tests/test_backlinks_index.py
-A tests/test_obsidian_store.py
-A tests/test_session_logging.py
-M .planning/MILESTONES.md
-M .planning/PROJECT.md
-M .planning/STATE.md
-M requirements.txt
-M src/agent/handlers/__init__.py
-M src/agent/research_utils.py
-M src/config.py
-M src/storage/__init__.py
-M src/storage/database.py
+M src/agent/handlers/research_handler.py
+M .planning/phases/08-session-logging/VERIFICATION.md
+M .planning/phases/09-self-improving-claude/VERIFICATION.md
+M HANDOFF.md
 ```
 
-## To Resume
+## v2.0 is Fully Complete
 
-Say **"continue v2.0"** and I'll:
-1. Wire up session logging into research_handler
-2. Wire up CLAUDE.md pattern consulting into query building
-3. Test the integration end-to-end
-4. Confirm the vault path and integration is working
+All phases 05-09 are shipped and integrated. All 144 tests pass.

@@ -32,6 +32,6 @@ Added to `src/agent/research_utils.py`:
 - [x] Future queries can consult CLAUDE.md via `consult_claude_md()`
 - [x] No API keys needed — pure text file approach
 
-## Deferred
-- Actual auto-review prompt after Tavily research results (integration into research_handler)
-- Query formulation consulting before Tavily search
+## Integration (Now Complete)
+- `handle_research_request()` now calls `update_claude_md()` after each research session with results summary
+- `build_research_query()` now consults CLAUDE.md "What Works" section via `consult_claude_md()` before building query

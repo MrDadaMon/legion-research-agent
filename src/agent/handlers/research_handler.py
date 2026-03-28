@@ -8,6 +8,9 @@ from src.agent.research_utils import (
     ask_research_targeting_questions,
     build_research_query,
     format_cited_results,
+    consult_claude_md,
+    update_claude_md,
+    format_session_history,
 )
 
 load_dotenv()
@@ -23,6 +26,13 @@ RESEARCH_TRIGGER_PATTERNS = [
     r'find\s+more\s+about',
 ]
 
+RESEARCH_HISTORY_PATTERNS = [
+    r'what\s+have\s+i\s+researched',
+    r"what's?\s+my\s+research\s+history",
+    r'show\s+(?:me\s+)?my\s+research\s+history',
+    r'research\s+history',
+]
+
 
 def is_research_query(user_message: str) -> bool:
     """Detect if user is requesting research on stored content.
@@ -35,6 +45,24 @@ def is_research_query(user_message: str) -> bool:
         if re.search(pattern, user_lower):
             return True
     return False
+
+
+def is_research_history_query(user_message: str) -> bool:
+    """Detect if user is asking for their research history.
+
+    Examples: "what have I researched?", "show my research history"
+    """
+    user_lower = user_message.lower().strip()
+    for pattern in RESEARCH_HISTORY_PATTERNS:
+        if re.search(pattern, user_lower):
+            return True
+    return False
+
+
+async def handle_research_history(db: Database, limit: int = 10) -> str:
+    """Return formatted research session history."""
+    sessions = await db.get_recent_sessions(limit=limit)
+    return format_session_history(sessions)
 
 
 def extract_content_reference(user_message: str) -> str | None:
@@ -176,13 +204,30 @@ async def handle_research_request(
     # Build composite query
     query = build_research_query(seed_content, answers)
 
+    # Insert research session log before executing
+    session_id = await db.insert_research_session(
+        query=query,
+        seed_content_id=seed_content.get('id') if seed_content else None,
+    )
+
     # Execute research
     try:
         results = await execute_research(query)
     except ValueError as e:
+        await db.update_research_session(session_id, results_count=0, notes=str(e))
         return f"[Research Error]\n\n{str(e)}"
     except Exception as e:
+        await db.update_research_session(session_id, results_count=0, notes=str(e))
         return f"[Research Error]\n\nFailed to execute research: {str(e)}"
+
+    # Update session with results count
+    await db.update_research_session(session_id, results_count=len(results))
+
+    # Prompt for pattern notes to CLAUDE.md
+    update_claude_md(
+        f"Researched \"{topic_name}\" with query \"{query}\" — {len(results)} results. "
+        f"Patterns noticed: [agent should observe what worked and append here]"
+    )
 
     # Format results
     return format_cited_results(results, query)

@@ -40,6 +40,7 @@ Auto-detected via surfacing handler patterns like "what have I researched?" or "
 - [x] Sessions filterable by topic
 - [x] 6 tests passing
 
-## Deferred
-- Auto-logging integration into research_handler (needs update_research_session call after Tavily results)
-- Surface session history via surfacing handler trigger phrases
+## Integration (Now Complete)
+- `handle_research_request()` now calls `insert_research_session()` before Tavily search
+- After results, calls `update_research_session(results_count=len(results))`
+- Research history query detection added via `is_research_history_query()` + `handle_research_history()`

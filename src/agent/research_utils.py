@@ -109,7 +109,9 @@ def format_session_history(sessions: list[dict]) -> str:
 
 
 def build_research_query(content_item: dict, answers: dict) -> str:
-    """Build composite search query from stored content + targeting answers.
+    """Build composite search query from stored content + targeting answers + CLAUDE.md patterns.
+
+    Consults CLAUDE.md "What Works" section for query formulation tips before building.
 
     Args:
         content_item: Dict with 'title' and 'topics' keys
@@ -118,6 +120,9 @@ def build_research_query(content_item: dict, answers: dict) -> str:
     Returns:
         Composite query string combining content context + user's focus area
     """
+    tips = consult_claude_md("What Works")
+    tip_context = f" {tips}" if tips else ""
+
     topic = content_item.get('title', '')
     aspect = answers.get('aspect') or ''
     specific = answers.get('specific') or ''
@@ -128,7 +133,12 @@ def build_research_query(content_item: dict, answers: dict) -> str:
     if specific:
         parts.append(specific)
 
-    return ' '.join(parts)
+    query = ' '.join(parts)
+
+    if tip_context and len(tip_context) < 200:
+        query += tip_context
+
+    return query
 
 
 async def ask_research_targeting_questions(
