@@ -1,207 +1,393 @@
-"""notebook-lm-pi handler for free AI RAG processing and deliverable generation.
+"""notebook-lm handler using notebooklm-py.
 
-This module provides integration with notebook-lm-pi (GitHub: notebook-lm-pi by Tang Ling).
+notebooklm-py (GitHub: teng-lin/notebooklm-py) — proper Python async API
+for Google NotebookLM with CLI login (no API key needed).
 
-When NOT_CONFIGURED (no API key/auth), stub methods return helpful messages
-pointing to Legion setup. When configured, full capabilities are available.
+Auth setup on Legion:
+1. pip install "notebooklm-py[browser]"
+2. playwright install chromium
+3. notebooklm login  (opens browser, authenticate once)
 
-API key/auth deferred to Legion setup — user configures once when deploying.
+After login, authentication is stored locally — no API key needed.
 """
 
-import os
 import logging
 from typing import Literal
-from dotenv import load_dotenv
-
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-NOTEBOOK_LM_API_KEY = os.getenv("NOTEBOOK_LM_API_KEY")
-NOT_CONFIGURED = NOTEBOOK_LM_API_KEY is None
-
+# Deliverable types supported by NotebookLM
 DeliverableType = Literal[
-    "podcast",
-    "infographic",
-    "slides",
-    "mind_map",
-    "flashcards",
     "audio_overview",
+    "video",
+    "slide_deck",
+    "infographic",
+    "flashcards",
+    "quiz",
+    "report",
+    "mind_map",
+    "data_table",
 ]
 
 DELIVERABLE_DESCRIPTIONS: dict[DeliverableType, str] = {
-    "podcast": "AI-generated audio discussion of your sources",
+    "audio_overview": "AI-generated audio discussion of your sources (the classic NotebookLM podcast)",
+    "video": "AI-generated video summary with visuals",
+    "slide_deck": "Presentation deck ready to share",
     "infographic": "Visual summary with key points and connections",
-    "slides": "Presentation deck ready to share",
-    "mind_map": "Visual map of how concepts connect",
     "flashcards": "Study cards for active recall",
-    "audio_overview": "Concise audio summary of the material",
+    "quiz": "Test your knowledge with AI-generated questions",
+    "report": "Structured study guide or report",
+    "mind_map": "Visual map of how concepts connect",
+    "data_table": "Structured data extracted from sources",
+}
+
+ARTIFACT_TYPE_MAP: dict[DeliverableType, str] = {
+    "audio_overview": "audio",
+    "video": "video",
+    "slide_deck": "slides",
+    "infographic": "infographic",
+    "flashcards": "flashcards",
+    "quiz": "quiz",
+    "report": "report",
+    "mind_map": "mind_map",
+    "data_table": "data_table",
 }
 
 
 class NotebookLMHandler:
-    """Handler for notebook-lm-pi integration.
+    """Handler for notebooklm-py integration.
 
     Supports:
     - Source upload (YouTube URLs, articles, PDFs)
-    - RAG queries against uploaded sources
-    - Deliverable generation (podcast, infographic, slides, etc.)
+    - RAG chat queries against uploaded sources with citations
+    - Deliverable generation (audio, video, slides, infographic, flashcards, quiz, etc.)
+    - Notebook management (create, list)
 
-    When not configured (no API key), all methods return stub responses.
+    Auth: Run `notebooklm login` once on Legion to authenticate via browser.
+    After that, from_storage() reads stored credentials automatically.
     """
 
     def __init__(self):
         self._client = None
-        if not NOT_CONFIGURED:
-            self._init_client()
+        self._checked = False
 
-    def _init_client(self):
+    async def _get_client(self):
+        """Lazy-initialize the NotebookLM client."""
+        if self._client is not None:
+            return self._client
+
         try:
-            from notebooklm import NotebookLM
-            self._client = NotebookLM(api_key=NOTEBOOK_LM_API_KEY)
-            logger.info("notebook-lm-pi client initialized")
+            from notebooklm import NotebookLMClient
+            self._client = await NotebookLMClient.from_storage()
+            logger.info("notebooklm-py client initialized")
+            return self._client
         except ImportError:
-            logger.warning("notebook-lm-pi not installed")
-            self._client = None
+            raise RuntimeError(
+                "notebooklm-py not installed. Run: pip install 'notebooklm-py[browser]'"
+            )
 
     def is_configured(self) -> bool:
-        """Check if notebook-lm-pi is configured and authenticated."""
-        return not NOT_CONFIGURED and self._client is not None
+        """Check if notebooklm-py is installed and authenticated."""
+        try:
+            from notebooklm import NotebookLMClient
+            return True
+        except ImportError:
+            return False
 
-    def upload_source(self, url: str) -> dict:
+    async def check_status(self) -> dict:
+        """Check notebooklm-py configuration and authentication status."""
+        try:
+            import notebooklm
+            notebooklm.NotebookLMClient  # verify class exists
+        except ImportError:
+            return {
+                "configured": False,
+                "message": (
+                    "notebooklm-py not installed. "
+                    "On Legion, run:\n"
+                    "  pip install 'notebooklm-py[browser]'\n"
+                    "  playwright install chromium\n"
+                    "  notebooklm login\n"
+                    "Then authenticate via browser."
+                ),
+            }
+
+        try:
+            client = await NotebookLMClient.from_storage()
+            await client.close()
+            return {
+                "configured": True,
+                "message": "notebooklm-py is ready. You are authenticated.",
+            }
+        except Exception as e:
+            return {
+                "configured": False,
+                "authenticated": False,
+                "message": f"Authentication check failed: {e}\nRun 'notebooklm login' on Legion to authenticate.",
+            }
+
+    async def get_or_create_notebook(self, name: str = "Legion Research") -> str:
+        """Get the most recent notebook or create a new one.
+
+        Args:
+            name: Name for new notebook if creating
+
+        Returns:
+            Notebook ID string
+        """
+        client = await self._get_client()
+
+        # Try to find existing notebook
+        try:
+            notebooks = await client.notebooks.list()
+            if notebooks:
+                # Return most recent
+                return notebooks[0].id
+        except Exception:
+            pass
+
+        # Create new notebook
+        notebook = await client.notebooks.create(name)
+        return notebook.id
+
+    async def upload_source(self, url: str, notebook_id: str | None = None) -> dict:
         """Upload a source (YouTube URL, article, PDF) to Notebook LM.
 
         Args:
             url: URL to upload (YouTube, article, or PDF)
+            notebook_id: Optional notebook ID. If None, uses most recent or creates new.
 
         Returns:
             dict with status, source_id, and message
         """
-        if NOT_CONFIGURED:
-            return {
-                "status": "not_configured",
-                "message": (
-                    "notebook-lm-pi is not configured yet. "
-                    "API key not found in environment. "
-                    "Add NOTEBOOK_LM_API_KEY to your .env file to enable. "
-                    "See .env.example for the format."
-                ),
-            }
-
-        if self._client is None:
-            return {"status": "error", "message": "notebook-lm-pi client failed to initialize"}
+        if notebook_id is None:
+            notebook_id = await self.get_or_create_notebook()
 
         try:
-            result = self._client.add_source(url=url)
+            client = await self._get_client()
+            source = await client.sources.add_url(notebook_id, url, wait=True)
             return {
                 "status": "success",
-                "source_id": result.get("id"),
+                "source_id": source.id,
+                "notebook_id": notebook_id,
                 "message": f"Source uploaded successfully: {url}",
             }
         except Exception as e:
-            logger.error(f"notebook-lm-pi upload failed: {e}")
-            return {"status": "error", "message": f"Upload failed: {str(e)}"}
+            logger.error(f"notebooklm-py upload failed: {e}")
+            return {
+                "status": "error",
+                "message": f"Upload failed: {str(e)}",
+            }
 
-    def query(self, question: str, source_ids: list[str] | None = None) -> dict:
+    async def query(
+        self,
+        question: str,
+        notebook_id: str | None = None,
+        source_ids: list[str] | None = None,
+    ) -> dict:
         """Query Notebook LM's AI RAG analysis of uploaded sources.
 
         Args:
             question: Question to ask about the sources
+            notebook_id: Optional notebook ID. Uses most recent if None.
             source_ids: Optional list of source IDs to query. If None, queries all.
 
         Returns:
-            dict with status, answer, and sources used
+            dict with status, answer, citations, and conversation_id
         """
-        if NOT_CONFIGURED:
-            return {
-                "status": "not_configured",
-                "message": (
-                    "notebook-lm-pi is not configured. "
-                    "Add NOTEBOOK_LM_API_KEY to your .env file to enable RAG queries."
-                ),
-            }
-
-        if self._client is None:
-            return {"status": "error", "message": "notebook-lm-pi client not initialized"}
+        if notebook_id is None:
+            notebook_id = await self.get_or_create_notebook()
 
         try:
-            result = self._client.query(
-                query=question,
-                sources=source_ids,
+            client = await self._get_client()
+            result = await client.chat.ask(
+                notebook_id,
+                question,
+                source_ids=source_ids,
             )
             return {
                 "status": "success",
-                "answer": result.get("answer", ""),
-                "sources_used": source_ids or [],
+                "answer": result.answer,
+                "conversation_id": result.conversation_id,
+                "references": [
+                    {
+                        "citation_number": ref.citation_number,
+                        "source_id": ref.source_id,
+                        "cited_text": ref.cited_text,
+                    }
+                    for ref in result.references
+                ],
             }
         except Exception as e:
-            logger.error(f"notebook-lm-pi query failed: {e}")
-            return {"status": "error", "message": f"Query failed: {str(e)}"}
+            logger.error(f"notebooklm-py query failed: {e}")
+            return {
+                "status": "error",
+                "message": f"Query failed: {str(e)}",
+            }
 
-    def generate_deliverable(
+    async def generate_deliverable(
         self,
         deliverable_type: DeliverableType,
-        source_ids: list[str] | None = None,
+        instructions: str | None = None,
+        notebook_id: str | None = None,
     ) -> dict:
-        """Generate a deliverable (podcast, infographic, slides, etc.) from sources.
+        """Generate a deliverable from notebook sources.
 
         Args:
             deliverable_type: Type of deliverable to generate
-            source_ids: Optional list of source IDs. If None, uses all.
+            instructions: Optional custom instructions for generation
+            notebook_id: Optional notebook ID. Uses most recent if None.
 
         Returns:
-            dict with status, deliverable_url (or file_path), and message
+            dict with status, task_id, and artifact info
         """
-        if NOT_CONFIGURED:
-            return {
-                "status": "not_configured",
-                "deliverable_type": deliverable_type,
-                "message": (
-                    f"notebook-lm-pi not configured. Cannot generate {deliverable_type}. "
-                    "Add NOTEBOOK_LM_API_KEY to your .env file to enable deliverables."
-                ),
-            }
-
-        if self._client is None:
-            return {"status": "error", "message": "notebook-lm-pi client not initialized"}
+        if notebook_id is None:
+            notebook_id = await self.get_or_create_notebook()
 
         try:
-            result = self._client.generate(
-                format=deliverable_type,
-                sources=source_ids,
-            )
+            client = await self._get_client()
+            artifact_kind = ARTIFACT_TYPE_MAP[deliverable_type]
+
+            # Call appropriate generate method
+            if deliverable_type == "audio_overview":
+                status = await client.artifacts.generate_audio(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "video":
+                status = await client.artifacts.generate_video(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "slide_deck":
+                status = await client.artifacts.generate_slide_deck(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "infographic":
+                status = await client.artifacts.generate_infographic(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "flashcards":
+                status = await client.artifacts.generate_flashcards(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "quiz":
+                status = await client.artifacts.generate_quiz(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "report":
+                status = await client.artifacts.generate_report(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "mind_map":
+                status = await client.artifacts.generate_mind_map(
+                    notebook_id, instructions=instructions
+                )
+            elif deliverable_type == "data_table":
+                status = await client.artifacts.generate_data_table(
+                    notebook_id, instructions=instructions
+                )
+            else:
+                return {"status": "error", "message": f"Unknown deliverable type: {deliverable_type}"}
+
             return {
                 "status": "success",
-                "deliverable_type": deliverable_type,
-                "deliverable_url": result.get("url") or result.get("file_path"),
-                "message": f"{deliverable_type} generated successfully",
+                "task_id": status.task_id,
+                "artifact_kind": artifact_kind,
+                "notebook_id": notebook_id,
+                "message": f"{deliverable_type} generation started. Use task_id to download when ready.",
+            }
+
+        except Exception as e:
+            logger.error(f"notebooklm-py generate failed: {e}")
+            return {
+                "status": "error",
+                "message": f"Generation failed: {str(e)}",
+            }
+
+    async def download_deliverable(
+        self,
+        deliverable_type: DeliverableType,
+        task_id: str,
+        output_path: str,
+        notebook_id: str | None = None,
+    ) -> dict:
+        """Download a generated artifact.
+
+        Args:
+            deliverable_type: Type of deliverable
+            task_id: Task ID returned from generate_deliverable
+            output_path: Local path to save the file
+            notebook_id: Optional notebook ID
+
+        Returns:
+            dict with status and file_path
+        """
+        if notebook_id is None:
+            notebook_id = await self.get_or_create_notebook()
+
+        try:
+            client = await self._get_client()
+
+            if deliverable_type == "audio_overview":
+                path = await client.artifacts.download_audio(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "video":
+                path = await client.artifacts.download_video(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "slide_deck":
+                path = await client.artifacts.download_slide_deck(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "infographic":
+                path = await client.artifacts.download_infographic(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "flashcards":
+                path = await client.artifacts.download_flashcards(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "quiz":
+                path = await client.artifacts.download_quiz(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "report":
+                path = await client.artifacts.download_report(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "mind_map":
+                path = await client.artifacts.download_mind_map(notebook_id, output_path, task_id=task_id)
+            elif deliverable_type == "data_table":
+                path = await client.artifacts.download_data_table(notebook_id, output_path, task_id=task_id)
+            else:
+                return {"status": "error", "message": f"Unknown deliverable type: {deliverable_type}"}
+
+            return {"status": "success", "file_path": path}
+
+        except Exception as e:
+            logger.error(f"notebooklm-py download failed: {e}")
+            return {"status": "error", "message": f"Download failed: {str(e)}"}
+
+    async def wait_for_generation(
+        self,
+        notebook_id: str,
+        task_id: str,
+        timeout: float = 300.0,
+    ) -> dict:
+        """Wait for artifact generation to complete.
+
+        Args:
+            notebook_id: Notebook ID
+            task_id: Task ID from generate_deliverable
+            timeout: Max seconds to wait (default 5 min)
+
+        Returns:
+            dict with status, is_complete, and artifact info
+        """
+        try:
+            client = await self._get_client()
+            status = await client.artifacts.wait_for_completion(notebook_id, task_id, timeout=timeout)
+            return {
+                "status": "success",
+                "is_complete": status.state.is_complete(),
+                "artifact_id": status.artifact_id,
+                "message": "Generation complete" if status.state.is_complete() else "Still processing",
             }
         except Exception as e:
-            logger.error(f"notebook-lm-pi generate failed: {e}")
-            return {"status": "error", "message": f"Generation failed: {str(e)}"}
+            logger.error(f"notebooklm-py wait failed: {e}")
+            return {"status": "error", "message": f"Wait failed: {str(e)}"}
 
-    def check_status(self) -> dict:
-        """Check notebook-lm-pi configuration and authentication status."""
-        if NOT_CONFIGURED:
-            return {
-                "configured": False,
-                "api_key_present": False,
-                "message": "NOTEBOOK_LM_API_KEY not found in environment",
-            }
-
-        if self._client is None:
-            return {
-                "configured": False,
-                "api_key_present": True,
-                "client_init_failed": True,
-                "message": "Client failed to initialize — check notebook-lm-pi installation",
-            }
-
-        return {
-            "configured": True,
-            "api_key_present": True,
-            "message": "notebook-lm-pi is ready",
-        }
+    async def close(self):
+        """Close the NotebookLM client."""
+        if self._client:
+            await self._client.close()
+            self._client = None
 
 
 def format_deliverable_options() -> str:
@@ -210,28 +396,42 @@ def format_deliverable_options() -> str:
     for dtype, desc in DELIVERABLE_DESCRIPTIONS.items():
         lines.append(f"- **{dtype.replace('_', ' ').title()}** — {desc}")
     lines.append("")
-    lines.append("Say the deliverable type to generate, e.g., 'generate a podcast'")
+    lines.append("Say the deliverable type to generate, e.g., 'generate a podcast' or 'make flashcards'")
+    return "\n".join(lines)
+
+
+def format_query_result(result: dict) -> str:
+    """Format a NotebookLM query result for display."""
+    if result["status"] != "success":
+        return f"[NotebookLM Query Error]\n\n{result.get('message', 'Unknown error')}"
+
+    lines = ["[NotebookLM Answer]", ""]
+    lines.append(result["answer"])
+    lines.append("")
+
+    refs = result.get("references", [])
+    if refs:
+        lines.append(f"*{len(refs)} source(s) cited:*")
+        for ref in refs:
+            lines.append(f"  [{ref['citation_number']}] {ref['cited_text'][:100]}...")
+
     return "\n".join(lines)
 
 
 def format_deliverable_response(result: dict) -> str:
     """Format a deliverable generation result for display."""
-    if result["status"] == "not_configured":
-        return (
-            f"[Deliverable: {result.get('deliverable_type', 'unknown')}]\n\n"
-            f"{result['message']}\n\n"
-            "When you configure NOTEBOOK_LM_API_KEY, I'll generate this for you."
-        )
-
     if result["status"] == "error":
-        return f"[Deliverable Error]\n\n{result['message']}"
+        return f"[Deliverable Error]\n\n{result.get('message', 'Unknown error')}"
 
-    dtype = result.get("deliverable_type", "deliverable")
-    url = result.get("deliverable_url", "")
-    msg = result.get("message", "Generated successfully")
+    dtype = result.get("artifact_kind", result.get("deliverable_type", "deliverable"))
+    task_id = result.get("task_id", "")
+    msg = result.get("message", "")
 
-    lines = [f"[{dtype.replace('_', ' ').title()} Ready]", ""]
+    lines = [f"[{dtype.title()} Generation Started]", ""]
     lines.append(msg)
-    if url:
-        lines.append(f"URL: {url}")
+    if task_id:
+        lines.append(f"Task ID: {task_id}")
+    lines.append("")
+    lines.append("I'll monitor this and download when ready. You can continue working while it generates.")
+
     return "\n".join(lines)

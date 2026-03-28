@@ -2,40 +2,45 @@ import pytest
 from src.agent.handlers.notebook_lm_handler import (
     NotebookLMHandler,
     format_deliverable_options,
+    format_query_result,
     format_deliverable_response,
     DELIVERABLE_DESCRIPTIONS,
+    ARTIFACT_TYPE_MAP,
 )
 
 
-class TestNotebookLMHandlerNotConfigured:
-    """Tests for NotebookLMHandler when API key is not set."""
+class TestNotebookLMHandlerStructure:
+    """Tests for handler structure — package not installed in test env."""
 
-    def test_is_configured_returns_false_when_no_key(self):
+    def test_handler_has_required_methods(self):
+        handler = NotebookLMHandler()
+        assert hasattr(handler, "is_configured")
+        assert hasattr(handler, "check_status")
+        assert hasattr(handler, "get_or_create_notebook")
+        assert hasattr(handler, "upload_source")
+        assert hasattr(handler, "query")
+        assert hasattr(handler, "generate_deliverable")
+        assert hasattr(handler, "download_deliverable")
+        assert hasattr(handler, "wait_for_generation")
+        assert hasattr(handler, "close")
+
+    def test_is_configured_false_when_package_not_installed(self, monkeypatch):
+        """When notebooklm-py is not installed, is_configured returns False."""
+        import sys
+        # Simulate package not installed
+        monkeypatch.delitem(sys.modules, "notebooklm", raising=False)
         handler = NotebookLMHandler()
         assert handler.is_configured() is False
 
-    def test_check_status_returns_not_configured(self):
+    @pytest.mark.asyncio
+    async def test_check_status_reports_not_installed(self, monkeypatch):
+        """check_status returns helpful setup instructions when package missing."""
+        import sys
+        monkeypatch.delitem(sys.modules, "notebooklm", raising=False)
         handler = NotebookLMHandler()
-        status = handler.check_status()
+        status = await handler.check_status()
         assert status["configured"] is False
-        assert status["api_key_present"] is False
-
-    def test_upload_source_returns_not_configured_message(self):
-        handler = NotebookLMHandler()
-        result = handler.upload_source("https://youtube.com/watch?v=abc")
-        assert result["status"] == "not_configured"
-        assert "NOTEBOOK_LM_API_KEY" in result["message"]
-
-    def test_query_returns_not_configured_message(self):
-        handler = NotebookLMHandler()
-        result = handler.query("What is the main topic?")
-        assert result["status"] == "not_configured"
-
-    def test_generate_deliverable_returns_not_configured(self):
-        handler = NotebookLMHandler()
-        result = handler.generate_deliverable("podcast")
-        assert result["status"] == "not_configured"
-        assert result["deliverable_type"] == "podcast"
+        assert "pip install" in status["message"]
 
 
 class TestFormatDeliverableOptions:
@@ -47,28 +52,55 @@ class TestFormatDeliverableOptions:
 
     def test_mentions_how_to_request(self):
         output = format_deliverable_options()
-        assert "generate a podcast" in output
+        assert "generate" in output.lower()
+
+
+class TestFormatQueryResult:
+    def test_error_formatting(self):
+        result = {"status": "error", "message": "Something went wrong"}
+        output = format_query_result(result)
+        assert "Error" in output
+        assert "Something went wrong" in output
+
+    def test_success_formatting(self):
+        result = {
+            "status": "success",
+            "answer": "The main theme is AI safety.",
+            "references": [
+                {"citation_number": 1, "source_id": "src1", "cited_text": "AI safety is important"},
+            ],
+        }
+        output = format_query_result(result)
+        assert "AI safety is important" in output
+        assert "1 source" in output
 
 
 class TestFormatDeliverableResponse:
-    def test_not_configured_response(self):
-        result = {"status": "not_configured", "deliverable_type": "infographic", "message": "Not set up"}
-        output = format_deliverable_response(result)
-        assert "infographic" in output.lower()
-        assert "configure" in output.lower()
-
     def test_error_response(self):
-        result = {"status": "error", "message": "Something went wrong"}
+        result = {"status": "error", "message": "Generation failed"}
         output = format_deliverable_response(result)
         assert "Error" in output
 
     def test_success_response(self):
         result = {
             "status": "success",
-            "deliverable_type": "slides",
-            "deliverable_url": "https://example.com/slides.pdf",
-            "message": "Generated successfully",
+            "artifact_kind": "audio",
+            "task_id": "task-123",
+            "message": "Audio generation started",
         }
         output = format_deliverable_response(result)
-        assert "slides" in output.lower()
-        assert "https://example.com/slides.pdf" in output
+        assert "Audio" in output
+        assert "task-123" in output
+        assert "download" in output.lower()
+
+
+class TestDeliverableConstants:
+    def test_all_deliverable_types_defined(self):
+        expected = {
+            "audio_overview", "video", "slide_deck", "infographic",
+            "flashcards", "quiz", "report", "mind_map", "data_table",
+        }
+        assert set(DELIVERABLE_DESCRIPTIONS.keys()) == expected
+
+    def test_artifact_type_map_complete(self):
+        assert set(ARTIFACT_TYPE_MAP.keys()) == set(DELIVERABLE_DESCRIPTIONS.keys())
