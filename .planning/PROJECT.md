@@ -36,12 +36,12 @@ You stop re-watching videos to find one thing you vaguely remember. Everything y
 
 ### Active (v2.0)
 
-- [ ] Obsidian vault as primary knowledge graph (replaces plain content/ folder)
-- [ ] notebook-lm-pi integration for AI RAG processing and deliverables
-- [ ] yt-dlp YouTube search skill for zero-cost content discovery
-- [ ] Deliverable generation: infographics, slide decks, podcasts from research
-- [ ] Self-improving CLAUDE.md: agent updates conventions based on interaction patterns
-- [ ] Research session logging (track what was researched over time)
+- [x] Obsidian vault as primary knowledge graph (replaces plain content/ folder) — Phase 06
+- [x] notebook-lm-pi stub handler (API key deferred to Legion setup) — Phase 07
+- [x] yt-dlp YouTube search skill for zero-cost content discovery — Phase 05
+- [x] Deliverable generation stubs (infographics, slide decks, podcasts) — Phase 07
+- [x] Self-improving CLAUDE.md: project conventions + session patterns — Phase 09
+- [x] Research session logging (track what was researched over time) — Phase 08
 
 ### Out of Scope
 

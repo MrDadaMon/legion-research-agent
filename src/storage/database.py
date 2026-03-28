@@ -95,6 +95,19 @@ class Database:
             )
         """)
 
+        # research_sessions table for session logging (Phase 08)
+        await self._conn.execute("""
+            CREATE TABLE IF NOT EXISTS research_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+                query TEXT NOT NULL,
+                seed_content_id INTEGER REFERENCES content(id) ON DELETE SET NULL,
+                results_count INTEGER DEFAULT 0,
+                deliverable_types TEXT,
+                notes TEXT
+            )
+        """)
+
         await self._conn.commit()
 
     async def insert_content(self, item: ContentItem) -> int:
@@ -368,6 +381,102 @@ class Database:
             WHERE id = ?
         """, (resolution, conflict_id))
         await self._conn.commit()
+
+    async def insert_research_session(
+        self,
+        query: str,
+        seed_content_id: int | None = None,
+        results_count: int = 0,
+        deliverable_types: str | None = None,
+        notes: str | None = None,
+    ) -> int:
+        """Insert a research session log entry. Returns the session id."""
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            """
+            INSERT INTO research_sessions
+                (query, seed_content_id, results_count, deliverable_types, notes)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (query, seed_content_id, results_count, deliverable_types, notes),
+        )
+        await self._conn.commit()
+        return cursor.lastrowid
+
+    async def update_research_session(
+        self,
+        session_id: int,
+        results_count: int | None = None,
+        deliverable_types: str | None = None,
+        notes: str | None = None,
+    ) -> None:
+        """Update a research session with results info."""
+        await self._ensure_connection()
+        if results_count is not None:
+            await self._conn.execute(
+                "UPDATE research_sessions SET results_count = ? WHERE id = ?",
+                (results_count, session_id),
+            )
+        if deliverable_types is not None:
+            await self._conn.execute(
+                "UPDATE research_sessions SET deliverable_types = ? WHERE id = ?",
+                (deliverable_types, session_id),
+            )
+        if notes is not None:
+            await self._conn.execute(
+                "UPDATE research_sessions SET notes = ? WHERE id = ?",
+                (notes, session_id),
+            )
+        await self._conn.commit()
+
+    async def get_recent_sessions(self, limit: int = 10) -> list[dict]:
+        """Get the most recent research sessions."""
+        await self._ensure_connection()
+        cursor = await self._conn.execute(
+            """
+            SELECT rs.*, c.title as seed_content_title
+            FROM research_sessions rs
+            LEFT JOIN content c ON c.id = rs.seed_content_id
+            ORDER BY rs.timestamp DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def get_session_history(
+        self,
+        topic: str | None = None,
+        limit: int = 20,
+    ) -> list[dict]:
+        """Get research session history, optionally filtered by topic keyword."""
+        await self._ensure_connection()
+        if topic:
+            cursor = await self._conn.execute(
+                """
+                SELECT rs.*, c.title as seed_content_title
+                FROM research_sessions rs
+                LEFT JOIN content c ON c.id = rs.seed_content_id
+                WHERE rs.query LIKE ?
+                ORDER BY rs.timestamp DESC
+                LIMIT ?
+                """,
+                (f"%{topic}%", limit),
+            )
+        else:
+            cursor = await self._conn.execute(
+                """
+                SELECT rs.*, c.title as seed_content_title
+                FROM research_sessions rs
+                LEFT JOIN content c ON c.id = rs.seed_content_id
+                ORDER BY rs.timestamp DESC
+                LIMIT ?
+                """,
+                (limit,),
+            )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
 
     async def close(self):
         if self._conn:

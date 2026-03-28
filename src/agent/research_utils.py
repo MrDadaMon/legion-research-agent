@@ -1,10 +1,111 @@
 import os
+import re
+from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 import questionary
 
 load_dotenv()
 
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+CLAUDE_MD_PATH = Path("CLAUDE.md")
+
+
+def consult_claude_md(section: str = "What Works") -> str | None:
+    """Read a section from CLAUDE.md for pattern consultation.
+
+    Args:
+        section: Section name to extract (e.g., "What Works", "Query Formulation Tips")
+
+    Returns:
+        Section content as string, or None if section not found
+    """
+    if not CLAUDE_MD_PATH.exists():
+        return None
+
+    try:
+        content = CLAUDE_MD_PATH.read_text(encoding="utf-8")
+        # Find section heading
+        pattern = rf"## {re.escape(section)}\n\n(.*?)(?=\n## |\Z)"
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        return None
+    except Exception:
+        return None
+
+
+def update_claude_md(entry: str) -> bool:
+    """Append a session note entry to CLAUDE.md Session Notes section.
+
+    Args:
+        entry: The session note to append (will be formatted with date)
+
+    Returns:
+        True if updated successfully, False otherwise
+    """
+    if not CLAUDE_MD_PATH.exists():
+        return False
+
+    try:
+        content = CLAUDE_MD_PATH.read_text(encoding="utf-8")
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        formatted_entry = f"- *[{date_str}]* {entry}\n"
+
+        # Find Session Notes section
+        if "## Session Notes" in content:
+            # Append to existing section
+            new_content = content.replace(
+                "## Session Notes\n\n<!-- Agent appends patterns here after each research session -->",
+                f"## Session Notes\n\n<!-- Agent appends patterns here after each research session -->\n{formatted_entry}",
+            )
+        else:
+            # Add section at end
+            new_content = content + f"\n## Session Notes\n\n{formatted_entry}"
+
+        CLAUDE_MD_PATH.write_text(new_content, encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+
+def format_session_history(sessions: list[dict]) -> str:
+    """Format research session history for display.
+
+    Args:
+        sessions: List of session dicts from database
+
+    Returns:
+        Formatted string showing session history
+    """
+    if not sessions:
+        return "[Research History]\n\nNo research sessions recorded yet."
+
+    lines = ["[Research History]", ""]
+
+    for session in sessions:
+        timestamp = session.get("timestamp", "")
+        query = session.get("query", "")
+        results_count = session.get("results_count", 0)
+        deliverable_types = session.get("deliverable_types", "")
+        seed_title = session.get("seed_content_title", "")
+
+        # Format date
+        try:
+            dt = datetime.fromisoformat(timestamp)
+            date_str = dt.strftime("%b %d, %Y")
+        except Exception:
+            date_str = timestamp[:10]
+
+        lines.append(f"**{date_str}** — {query}")
+        if seed_title:
+            lines.append(f"  Seed: {seed_title}")
+        lines.append(f"  Results: {results_count}")
+        if deliverable_types:
+            lines.append(f"  Deliverables: {deliverable_types}")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 def build_research_query(content_item: dict, answers: dict) -> str:

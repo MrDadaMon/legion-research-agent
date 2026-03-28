@@ -16,6 +16,9 @@ questionary==2.1.1
 # Web research
 tavily-python==0.5.0
 
+# YouTube search
+yt-dlp>=2024.0.0
+
 # Optional (for future phases)
 # sentence-transformers  # For embeddings
 # tiktoken  # For token counting

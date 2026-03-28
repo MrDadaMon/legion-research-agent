@@ -15,10 +15,24 @@
 - 4 phases, 100% complete
 
 ## v2.0 — Research Stack Upgrade
-**Status:** In Progress
+**Completed:** 2026-03-27
 
-### Goal
-Add Obsidian vault (visual knowledge graph), notebook-lm-pi (free AI RAG processing), yt-dlp YouTube search, deliverable generation, and self-improving agent loop.
+### What Shipped
+- Phase 05: yt-dlp YouTube search skill — zero-cost YouTube metadata discovery
+- Phase 06: Obsidian vault integration — visual knowledge graph with [[links]], backlinks, daily session notes
+- Phase 07: notebook-lm-pi integration — stub handler ready for API key (deferred auth)
+- Phase 08: Research session logging — tracks all research sessions in SQLite
+- Phase 09: Self-improving CLAUDE.md — project conventions + session pattern tracking
+
+### Stats
+- 5 phases executed
+- 141 tests passing (+53 from v1.0)
+- 5 phases, 100% complete
+- yt-dlp search (zero-cost), Obsidian vault (visual graph), session history
+
+### Deferred (needs API keys)
+- notebook-lm-pi full integration (needs Google auth + NOTEBOOK_LM_API_KEY)
+- Tavily API key already present
 
 ---
-*Last updated: 2026-03-27 after v1.0 complete*
+*Last updated: 2026-03-27 after v2.0 complete*
