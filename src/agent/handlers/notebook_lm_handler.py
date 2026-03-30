@@ -1,3 +1,4 @@
+from __future__ import annotations
 """notebook-lm handler using notebooklm-py.
 
 notebooklm-py (GitHub: teng-lin/notebooklm-py) — proper Python async API

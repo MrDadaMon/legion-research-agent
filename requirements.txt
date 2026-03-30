@@ -1,14 +1,14 @@
 # Core dependencies
-python-dotenv==1.2.2
+python-dotenv==1.1.0
 aiosqlite==0.22.1
-pytest==9.0.2
-pytest-asyncio==0.26.0
+pytest==8.3.5
+pytest-asyncio==0.23.5
 
 # Content extraction
 youtube-transcript-api==1.2.4
 beautifulsoup4==4.14.3
 requests==2.32.5
-PyMuPDF==1.27.2.2
+PyMuPDF==1.26.5
 
 # CLI prompts
 questionary==2.1.1
@@ -21,7 +21,7 @@ yt-dlp>=2024.0.0
 
 # NotebookLM (Python API for Google NotebookLM)
 # Auth: run `notebooklm login` once on Legion to authenticate via browser
-notebooklm-py>=1.0.0
+notebooklm-py==0.1.1
 
 # Telegram bot
 python-telegram-bot==21.6

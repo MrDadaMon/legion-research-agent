@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 import sqlite_vec
 from sentence_transformers import SentenceTransformer

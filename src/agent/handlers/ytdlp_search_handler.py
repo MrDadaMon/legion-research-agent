@@ -1,3 +1,4 @@
+from __future__ import annotations
 """yt-dlp YouTube search handler — humanized for anti-bot detection.
 
 Key anti-detection features:
