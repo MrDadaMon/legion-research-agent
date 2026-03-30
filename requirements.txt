@@ -23,6 +23,9 @@ yt-dlp>=2024.0.0
 # Auth: run `notebooklm login` once on Legion to authenticate via browser
 notebooklm-py>=1.0.0
 
+# Telegram bot
+python-telegram-bot==21.6
+
 # Optional (for future phases)
 # sentence-transformers  # For embeddings
 # tiktoken  # For token counting
